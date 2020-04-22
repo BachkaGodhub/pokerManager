@@ -18,7 +18,7 @@ public class RoundTableModel extends AbstractTableModel {
 	private List<IPlayer> playerList;
 
 	private final String[] columnNames = new String[] { "Name", "Total Buy-In", "Chips" };
-	private final Class[] columnClass = new Class[] { String.class, Double.class, Double.class };
+	private final Class[] columnClass = new Class[] { String.class, Double.class, Integer.class };
 
 	public RoundTableModel(List<IPlayer> employeeList) {
 		this.playerList = employeeList;
@@ -77,7 +77,7 @@ public class RoundTableModel extends AbstractTableModel {
 		} else if (1 == columnIndex) {
 			row.setEuroTotalBuyIn((double) aValue);
 		} else if (2 == columnIndex) {
-			row.setChips((double) aValue);
+			row.setChips((int) aValue);
 		}
 	}
 

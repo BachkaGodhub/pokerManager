@@ -4,12 +4,12 @@ public class Player implements IPlayer {
 
 	private String name;
 	private double euroTotalBuyIn;
-	private double chips;
+	private int chips;
 	private double profit;
 	private int countGame;
 	private int id;
 
-	public Player(String name, double euro, double chips, double profit, int count) {
+	public Player(String name, double euro, int chips, double profit, int count) {
 		setName(name);
 		setEuroTotalBuyIn(euro);;
 		setChips(chips);
@@ -17,12 +17,12 @@ public class Player implements IPlayer {
 		setCountGame(count);
 	}
 	
-	public Player(String name, double euro, double chips) {
+	public Player(String name, double euro, int chips) {
 		this(name, euro, chips, 0.0, 0);
 	}
 
 	public Player(String _name) {
-		this(_name, 0.0, 0.0, 0.0, 0);
+		this(_name, 0.0, 0, 0.0, 0);
 	}
 
 	@Override
@@ -46,12 +46,12 @@ public class Player implements IPlayer {
 	}
 
 	@Override
-	public double getChips() {
+	public int getChips() {
 		return chips;
 	}
 
 	@Override
-	public void setChips(double chips) {
+	public void setChips(int chips) {
 		this.chips = chips;
 	}
 
