@@ -6,9 +6,9 @@ public interface IPlayer {
 	
 	void setName(String name);
 	
-	public double getChips();
+	public int getChips();
 	
-	public void setChips(double name);
+	public void setChips(int chips);
 	
 	public double getEuroTotalBuyIn();
 	
