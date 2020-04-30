@@ -2,11 +2,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
 
 import com.bachka.pokerManager.utils.player.IPlayer;
-import com.bachka.pokerManager.utils.player.Player;
-import com.bachka.pokerManager.utils.pokerRound.PokerRound;
 
 public class RoundTableModel extends AbstractTableModel {
 

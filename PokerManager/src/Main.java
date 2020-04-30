@@ -8,16 +8,9 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -30,6 +23,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+
+import com.bachka.pokerManager.utils.pokerday.PokerNight;
 
 public class Main extends JFrame implements ActionListener{
 
@@ -186,10 +181,14 @@ public class Main extends JFrame implements ActionListener{
         if(ae.getSource() == this.btnCalcProfit){
         	stopTableEditingMode();
         	clearOutputs();
-        	HashMap<String, Double> gesamtProfit = calcGesamtProfit();
-        	List<String> schuldenText = schuldenRechnen(gesamtProfit);
+        	PokerNight pokerNight = new PokerNight();
+        	pokerNight.addRound(roundTab1.getPokerRound(), roundTab2.getPokerRound(), roundTab3.getPokerRound(), roundTab4.getPokerRound(), roundTab5.getPokerRound());
+
+        	HashMap<String, Double> gesamtProfit = pokerNight.getTotal();
+        	List<String> schuldenText = pokerNight.schuldenRechnen();
         	String txt = schuldenText.stream().map(Object::toString).collect(Collectors.joining("\n"));
         	schuldenTextArea.setText(txt);
+        	
         	gesamtProfit.forEach((key,value)->{
         		ergebnisTextAreaGesamt.setText(ergebnisTextAreaGesamt.getText() + key + " : " + value + "\n");
         	});
@@ -207,8 +206,12 @@ public class Main extends JFrame implements ActionListener{
 
 	private void setErgebnisseToJPanel() {
         roundTabTextAreas.forEach((roundTab, textArea) ->{
-        	if(roundTab.hasData())
+        	if(roundTab.hasData()) {
+        		roundTab.getPokerRound().getPlayerListProfit().forEach((key, value) -> {
+        			textArea.setText(textArea.getText() + key + " : " + value + "\n");
+        		});
         		eachRoundResult.add(textArea);
+        	}
         });
 
 		eachRoundResult.add(ergebnisTextAreaGesamt);
@@ -220,116 +223,4 @@ public class Main extends JFrame implements ActionListener{
         		roundTab.stopCellEditing();
         });
 	}
-
-
-	public HashMap<String, Double> calcGesamtProfit()
-	{
-		HashMap<String, Double> gesamt = new HashMap<String, Double>();
-		
-		gesamt = calcEachRound(roundTab1, gesamt, ergebnisTextArea1);
-		gesamt = calcEachRound(roundTab2, gesamt, ergebnisTextArea2);
-		gesamt = calcEachRound(roundTab3, gesamt, ergebnisTextArea3);
-		gesamt = calcEachRound(roundTab4, gesamt, ergebnisTextArea4);
-		gesamt = calcEachRound(roundTab5, gesamt, ergebnisTextArea5);
-		return gesamt;
-	}
-	
-    private HashMap<String, Double> calcEachRound(RoundTab round, HashMap<String, Double> summary, JTextArea ergebnisTextArea) {
-    	if(round.hasData())
-		{
-			System.out.println("Round 1");
-			HashMap<String, Double> round1 = round.getPlayerListProfit();
-			round1.forEach((key, value) -> {
-				if(summary.get(key) != null)
-				{
-					double temp = summary.get(key);
-					summary.put(key, value + temp);
-				}
-				else
-				{
-					summary.put(key, value);
-				}
-				
-				ergebnisTextArea.setText(ergebnisTextArea.getText() + key + " : " + value + "\n");
-			});
-		}
-    	
-    	return summary;
-	}
-
-	private List<String> schuldenRechnen(HashMap<String, Double> gesamt)
-    {
-    	List<String> ausgleich = new ArrayList<String>();
-		
-		Map<String, Double> loserList = gesamt.entrySet().stream().filter(map -> map.getValue() < 0)
-				.collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
-		Map<String, Double> winnerList = gesamt.entrySet().stream().filter(map -> map.getValue() > 0)
-				.collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
-		
-		loserList.forEach((key, value) -> System.out.println("Key : " + key + " Value : " + value));
-		System.out.println("Winner*********************************************************");
-		winnerList.forEach((key, value) -> System.out.println("Key : " + key + " Value : " + value));
-		System.out.println("**************Schulden rechnen**************");
-		while (loserList.size() > 0 && winnerList.size() > 0) {
-			Entry<String, Double> bayan = maxUsingCollectionsMaxAndLambda(winnerList);
-			Entry<String, Double> yaduu = minUsingCollectionsMaxAndLambda(loserList);
-			boolean rausgehen= false;
-			if (bayan.getValue() < 0.01) {
-				winnerList.remove(bayan.getKey());
-				System.out.println("ERROR bayan");
-				rausgehen = true;
-			}
-			if(yaduu.getValue() > -0.01)
-			{
-				loserList.remove(yaduu.getKey());
-				System.out.println("ERROR yaduu");
-				rausgehen = true;			
-			}
-			if(rausgehen)
-			{
-				continue;
-			}
-			
-			if (bayan.getValue() > Math.abs(yaduu.getValue())) {
-				double schulden = bayan.getValue() + yaduu.getValue();
-				winnerList.replace(bayan.getKey(), schulden);
-				loserList.remove(yaduu.getKey());
-				System.out.println("LOG: " + yaduu.getKey() + " erlost " + yaduu.getValue());
-				System.out.println("LOG: " + bayan.getKey() + " hat noch " + schulden + " zunehmen");
-
-				ausgleich.add(yaduu.getKey() + " -> " + bayan.getKey() + " : " + Math.abs(yaduu.getValue()));
-
-			} else if (bayan.getValue() == Math.abs(yaduu.getValue())) {
-				ausgleich.add(yaduu.getKey() + " -> " + bayan.getKey() + " : " + Math.abs(yaduu.getValue()));
-
-				winnerList.remove(bayan.getKey());
-				loserList.remove(yaduu.getKey());
-			} else if (bayan.getValue() < Math.abs(yaduu.getValue())) {
-				double schulden = bayan.getValue() + yaduu.getValue();
-				System.out.println(bayan.getKey() + " " + yaduu.getKey() + " " + bayan.getValue() + " " + yaduu.getValue() + " " + schulden);
-				loserList.replace(yaduu.getKey(), schulden);
-				winnerList.remove(bayan.getKey());
-				System.out.println("LOG: " + bayan.getKey() + " erlost");
-				System.out.println("LOG: " + yaduu.getKey() + " hat noch " + schulden + " zuzahlen");
-				
-				ausgleich.add(yaduu.getKey() + " -> " + bayan.getKey() + " : " + bayan.getValue());
-			}
-			
-		}
-		ausgleich.forEach((v)-> System.out.println(v));
-		return ausgleich; 
-    }
-    
-	public Entry<String, Double> maxUsingCollectionsMaxAndLambda(Map<String, Double> map) {
-		Optional<Entry<String, Double>> maxEntry = map.entrySet().stream()
-				.max(Comparator.comparing(Map.Entry::getValue));
-		return maxEntry.get();
-	}
-
-	public Entry<String, Double> minUsingCollectionsMaxAndLambda(Map<String, Double> map) {
-		Optional<Entry<String, Double>> minEntry = map.entrySet().stream()
-				.min(Comparator.comparing(Map.Entry::getValue));
-		return minEntry.get();
-	}
-	
 }

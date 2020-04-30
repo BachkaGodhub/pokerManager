@@ -3,14 +3,18 @@ package com.bachka.pokerManager.utils.pokerRound;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.bachka.pokerManager.utils.player.IPlayer;
-import com.bachka.pokerManager.utils.player.Player;
 
-public class PokerRound {
+public class PokerRound implements IPokerRound {
+
+	private static final AtomicInteger count = new AtomicInteger(0); 
 
 	private HashMap<String, IPlayer> _players = new HashMap<String, IPlayer>();
 
+	int roundNumber;
+		
 	public PokerRound(IPlayer player, IPlayer... morePlayers) {
 		_players.put(player.getName(), player);
 
@@ -25,8 +29,15 @@ public class PokerRound {
 		{
 			_players.put(p.getName(), p);
 		}
+		
+		roundNumber = count.incrementAndGet();
 	}
 
+	public int getRoundNumber() {
+		return roundNumber;
+	}
+
+	@Override
 	public HashMap<String, IPlayer> getPlayers() {
 		return _players;
 	}
@@ -58,6 +69,16 @@ public class PokerRound {
 	public void calcProfit() {
 		double chipCost = getTotalEuro()/getTotalChips();
 		_players.forEach((k,v)-> _players.get(k).calcProfit(chipCost));
+	}
+	
+	public HashMap<String, Double> getPlayerListProfit() {
+		HashMap<String, Double> _playersProfit = new HashMap<String, Double>();
+		this.calcProfit();
+		for (IPlayer p : getPlayers().values()) {
+			_playersProfit.put(p.getName(), p.getProfit());
+			System.out.println("PP " + p.getName() + ": " + p.getProfit());
+		}
 
+		return _playersProfit;
 	}
 }
